@@ -359,6 +359,9 @@ class HistoryList(MyTreeWidget, AcceptFileDragDrop):
                 child_tx = self.wallet.cpfp(tx, 0)
                 if child_tx:
                     menu.addAction(_("Child pays for parent"), lambda: self.parent.cpfp(tx, child_tx))
+        if tx:
+            menu.addAction(_("Spend from"),
+                           lambda: self.parent.spend_from_tx(tx))
         if pr_key:
             menu.addAction(self.icon_cache.get(":icons/seal"), _("View invoice"), lambda: self.parent.show_invoice(pr_key))
         if tx_URL:

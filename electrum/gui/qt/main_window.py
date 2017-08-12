@@ -63,6 +63,7 @@ from .fee_slider import FeeSlider
 from .util import *
 from .installwizard import WIF_HELP_TEXT
 
+import copy
 
 class StatusBarButton(QPushButton):
     def __init__(self, icon, tooltip, func):
@@ -3224,3 +3225,45 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
                      "to see it, you need to broadcast it."))
             win.msg_box(QPixmap(":icons/offline_tx.png"), None, _('Success'), msg)
             return True
+
+    def spend_from_tx(self, tx):
+        tx = copy.deepcopy(tx)
+        tx.deserialize()
+
+        coins = []
+
+        for x in tx.inputs():
+            prevout_hash = x.get('prevout_hash').encode("utf-8")
+            prevout_n = x.get('prevout_n')
+            address = x.get('address')
+
+            old_coins, spent = self.wallet.get_addr_io(address)
+
+            for txo, v in old_coins.items():
+                tx_height, value, is_cb = v
+                prevout_hash_x, prevout_n_x = txo.split(':')
+
+                prevout_n_x = int(prevout_n_x)
+
+                if not (prevout_hash == prevout_hash_x and prevout_n == prevout_n_x):
+                    continue
+
+                coin = {
+                    'address': address,
+                    'value': value,
+                    'prevout_n': int(prevout_n),
+                    'prevout_hash': prevout_hash,
+                    'height': tx_height,
+                    'coinbase': is_cb
+                }
+
+                coins.append(coin)
+                break
+
+        if len(coins) == 0:
+            return
+
+        self.set_pay_from(coins)
+        self.show_send_tab()
+        self.update_fee()
+

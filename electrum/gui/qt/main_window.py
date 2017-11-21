@@ -3233,7 +3233,7 @@ class ElectrumWindow(QMainWindow, MessageBoxMixin, PrintError):
         coins = []
 
         for x in tx.inputs():
-            prevout_hash = x.get('prevout_hash').encode("utf-8")
+            prevout_hash = x.get('prevout_hash')
             prevout_n = x.get('prevout_n')
             address = x.get('address')
 
